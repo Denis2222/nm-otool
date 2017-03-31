@@ -39,7 +39,7 @@ void	print_line(unsigned char *str, size_t start, size_t max)
 	char *line;
 
 
-	asprintf(&line,"%p", str);
+	asprintf(&line,"%.16zx	", start);
 	write(1, line, strlen(line));
 	free(line);
 	i = start;
@@ -65,6 +65,7 @@ void	print_line(unsigned char *str, size_t start, size_t max)
 		//ft_putascii(str[i]);
 		i++;
 	}
+	ft_putchar(' ');
 	ft_putchar('\n');
 }
 
