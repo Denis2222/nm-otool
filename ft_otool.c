@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/01 00:54:42 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/04/01 06:52:09 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/15 19:36:49 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,14 +14,326 @@
 
 typedef struct	s_ofile
 {
-	void		*ptr;
-	struct stat	buf;
+	void 			*fatptr;
+	void			*ptr;
+	struct stat		buf;
+	char 			*path;
+	unsigned int	isfat;
+	unsigned int	isfatswap;
+	unsigned int	isswap;
+	unsigned int 	is32;
 }				t_ofile;
+
+
+uint32_t swap32(uint32_t in)
+{
+	uint32_t out;
+
+	out = ((in & 0xFF) << 24) | ((in & 0xFF00) << 8) | ((in >> 8) & 0xFF00) | ((in >> 24) & 0xFF);
+	return (out);
+}
+
+uint32_t 	toswap32(t_ofile *ofile, uint32_t var)
+{
+	if (ofile->isswap)
+		return (swap32(var));
+	else
+		return (var);
+}
+
+void	ft_putascii(unsigned char c)
+{
+	if (c > 31 && c < 127)
+		ft_putchar(c);
+	else
+		ft_putchar('.');
+}
+
+void	ft_puthex(unsigned char c)
+{
+	char tab[16] = "0123456789abcdef";
+
+	ft_putchar(tab[c / 16]);
+	ft_putchar(tab[c % 16]);
+}
+
+void	print_line(unsigned char *str, size_t start, size_t max)
+{
+	size_t i;
+
+	i = start;
+	while (i < start + 16 && i < max)
+	{
+		ft_puthex(str[i]);
+		ft_putchar(' ');
+		i++;
+	}
+	while ( i < start + 16)
+	{
+		//ft_putstr("   ");
+		i++;
+	}
+
+	//ft_putchar(' ');
+	ft_putchar('\n');
+}
+
+void	print_memory_64(const void *addr, size_t size, uint64_t offset)
+{
+	unsigned char *str;
+	size_t	c;
+
+	ft_printf(":\nContents of (__TEXT,__text) section\n");
+	str = (unsigned char *)addr;
+	c = 0;
+	while (c < size)
+	{
+		ft_printf("%016lx", offset + c);
+		ft_putchar('	');
+		print_line(str, c, size);
+		c += 16;
+	}
+}
+
+
+void print_section_64(t_ofile *ofile, struct segment_command_64 *sc)
+{
+	struct section_64	*se;
+	unsigned int		i;
+
+	i = 0;
+	se = (void *)sc + sizeof(struct segment_command_64);
+	while (i < sc->nsects)
+	{
+		if (!strcmp("__text", se->sectname) && !strcmp("__TEXT", se->segname))
+			print_memory_64((void*)ofile->ptr + se->offset, se->size, se->addr);
+		se = (void*)se + sizeof(struct section_64);
+		i++;
+	}
+}
+
+void print_segment_64(struct load_command *lc, t_ofile *ofile)
+{
+	struct segment_command_64 *sc;
+
+	sc = (struct segment_command_64 *)lc;
+	print_section_64(ofile, sc);
+}
+
+void	handle_64(t_ofile *ofile)
+{
+	unsigned int			i;
+	struct mach_header_64	*mh;
+	struct load_command		*lc;
+
+	mh = (struct mach_header_64 *) ofile->ptr;
+	i = 0;
+	lc = (void*)(ofile->ptr + sizeof(*mh));
+	while (i < mh->ncmds)
+	{
+		if(lc->cmd == LC_SEGMENT_64)
+			print_segment_64(lc, ofile);
+		lc = (void *) lc + lc->cmdsize;
+		i++;
+	}
+}
+
+
+
+
+
+
+
+void	print_memory_32(const void *addr, size_t size, uint32_t offset)
+{
+	unsigned char *str;
+	size_t	c;
+
+	ft_printf(":\nContents of (__TEXT,__text) section\n");
+	str = (unsigned char *)addr;
+	c = 0;
+	while (c < size)
+	{
+		ft_printf("%08x", offset + c);
+		ft_putchar('	');
+		print_line(str, c, size);
+		c += 16;
+	}
+}
+
+
+void print_section_32(t_ofile *ofile, struct segment_command *sc)
+{
+	struct section	*se;
+	unsigned int		i;
+
+	i = 0;
+	se = (void *)sc + sizeof(struct segment_command);
+	while (i < toswap32(ofile, sc->nsects))
+	{
+		if (!strcmp("__text", se->sectname) && !strcmp("__TEXT", se->segname))
+			print_memory_32((void*)ofile->ptr + toswap32(ofile, se->offset), toswap32(ofile, se->size), toswap32(ofile, se->addr));
+		se = (void*)se + sizeof(struct section);
+		i++;
+	}
+}
+
+void print_segment_32(struct load_command *lc, t_ofile *ofile)
+{
+	struct segment_command *sc;
+
+	//printf("print_segment_32");
+	sc = (struct segment_command *)lc;
+	print_section_32(ofile, sc);
+}
+
+void	handle_32(t_ofile *ofile)
+{
+	unsigned int			i;
+	struct mach_header	*mh;
+	struct load_command		*lc;
+
+
+	mh = (struct mach_header *) ofile->ptr;
+	i = 0;
+	lc = (void*)(ofile->ptr + sizeof(*mh));
+	while (i < toswap32(ofile, mh->ncmds))
+	{
+		if(toswap32(ofile, lc->cmd) == LC_SEGMENT)
+			print_segment_32(lc, ofile);
+		lc = (void *) lc + toswap32(ofile, lc->cmdsize);
+		i++;
+	}
+}
+
+
+
+void checktype(t_ofile *ofile)
+{
+	uint32_t        magic;
+
+	magic = *(unsigned int *) ofile->ptr;
+	if (magic == MH_MAGIC_64)
+	{
+		ofile->isswap = 0;
+		ofile->is32 = 0;
+	}
+	else if (magic == MH_CIGAM_64)
+	{
+		ofile->isswap = 1;
+		ofile->is32 = 0;
+	}
+	else if (magic == MH_MAGIC)
+	{
+		ofile->isswap = 0;
+		ofile->is32 = 1;
+	}
+	else if (magic == MH_CIGAM)
+	{
+		ofile->isswap = 1;
+		ofile->is32 = 1;
+	}
+}
+
+void otool(t_ofile *ofile, t_argvise *arg)
+{
+	//uint32_t *magic;
+	struct mach_header *test;
+
+	checktype(ofile);
+	test = (void *)ofile->ptr;
+
+	//ft_printf(" %d  %d", ofile->isswap , ofile->is32);
+
+	if (ofile->is32 == 0 && ofile->isswap == 0)
+		handle_64(ofile);
+	else if (ofile->is32 == 1)
+		handle_32(ofile);
+	(void) arg;
+	//magic = (void *)ofile;
+	//ft_printf("%x    %x", &magic, MH_CIGAM_64);
+}
+
+void checkfat(t_ofile *ofile)
+{
+	struct fat_header	*header;
+
+	header = ofile->ptr;
+	ofile->fatptr = ofile->ptr;
+	ofile->isfat = 0;
+	ofile->isfatswap = 0;
+	if (header->magic == FAT_CIGAM)
+	{
+		ofile->isfat = swap32(header->nfat_arch);
+		ofile->isfatswap = 1;
+	}
+	else if (header->magic == FAT_MAGIC)
+	{
+		ofile->isfat = header->nfat_arch;
+		ofile->isfatswap = 0;
+	}
+}
+
+void show_archtype(cpu_type_t arch)
+{
+	if (arch == CPU_TYPE_X86 || arch == CPU_TYPE_I386 || arch == CPU_TYPE_X86_64)
+		ft_printf("(architecture i386)");
+	else if (arch == CPU_TYPE_POWERPC)
+		ft_printf("(architecture ppc)");
+	else if (arch == CPU_TYPE_POWERPC64)
+		ft_printf("(architecture ppc64)");
+	else if (arch == CPU_TYPE_ARM)
+		ft_printf("(architecture arm)");
+	else if (arch == CPU_TYPE_ARM64)
+		ft_printf("(architecture arm64)");
+	else
+		ft_printf("(specific architecture)");
+}
+
+void otoolfat(t_ofile *ofile, t_argvise *arg)
+{
+	struct fat_header	*header;
+	struct fat_arch		*arch;
+	unsigned int		iarch;
+
+	iarch = 0;
+	header = ofile->ptr;
+
+	while (iarch < ofile->isfat)
+	{
+		ft_printf("%s ", ofile->path);
+		arch = (ofile->fatptr + sizeof(struct fat_header) + (sizeof(struct fat_arch) * iarch));
+		if (ofile->isfatswap)
+			ofile->ptr = ofile->fatptr + swap32(arch->offset);
+		else
+			ofile->ptr = ofile->fatptr + arch->offset;
+		if (ofile->isfatswap)
+			show_archtype(swap32(arch->cputype));
+		else
+			show_archtype(arch->cputype);
+		//ft_printf(" %d %p %p", iarch, ofile->ptr, ofile->fatptr);
+		otool(ofile, arg);
+		iarch++;
+	}
+}
+
+void ofileheader(t_ofile *ofile, t_argvise *arg, int i)
+{
+	(void) i;
+	checkfat(ofile);
+	// Verifier l'architecture
+ 	if (ofile->isfat)
+		otoolfat(ofile, arg);
+	else
+	{
+		ft_printf("%s", ofile->path);
+		otool(ofile, arg);
+	}
+}
 
 t_ofile *open_ofile(char *path)
 {
 	int			fd;
-	struct stat	buf;
 
 	t_ofile		*ofile;
 	ofile = (t_ofile*)malloc(sizeof(t_ofile));
@@ -30,12 +342,13 @@ t_ofile *open_ofile(char *path)
 		ft_dprintf(2, "open fail on %s", path);
 		return (NULL);
 	}
-	if (fstat(fd, &buf) < 0)
+	ofile->path = path;
+	if (fstat(fd, &(ofile->buf)) < 0)
 	{
 		ft_dprintf(2, "fstat fail on %s", path);
 		return (NULL);
 	}
-	if ((ofile->ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
+	if ((ofile->ptr = mmap(0, ofile->buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
 	{
 		ft_dprintf(2, "mmap fail on %s", path);
 		return (NULL);
@@ -46,10 +359,11 @@ t_ofile *open_ofile(char *path)
 
 void	close_ofile(t_ofile *ofile)
 {
+	//ft_printf("Try to close %p      %d", ofile->ptr, ofile->buf.st_size);
 	if (munmap(ofile->ptr, ofile->buf.st_size) < 0)
 	{
-		ft_dprintf(2, "munmap fail on %s", path);
-		return (NULL);
+		ft_dprintf(2, "munmap fail on %s", ofile->path);
+		return ;
 	}
 }
 
@@ -69,9 +383,10 @@ int			main(int argc, char **argv)
 	i = 0;
 	while (arg->files[i] != '\0')
 	{
-		if (ofile = open_ofile(arg->files[i]))
+		if ((ofile = open_ofile(arg->files[i])))
 		{
-			ft_printf("file:%s %p\n", arg->files[i], ofile);
+			//ft_printf("%s ", arg->files[i]);
+			ofileheader(ofile, arg, i);
 			close_ofile(ofile);
 		}
 		else

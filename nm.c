@@ -7,8 +7,8 @@
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <stdlib.h>
-     #include <ctype.h>
-     #include <xlocale.h>
+#include <ctype.h>
+#include <xlocale.h>
 
 void	print_output(struct symtab_command *sym, char *ptr)
 {

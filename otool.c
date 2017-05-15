@@ -199,7 +199,7 @@ void nm(char *ptr)
 		handle_64(ptr);
 		puts("Je suis un binaire 64 bits");
 	}
-	else if (magic_number == FAT_MAGIC)
+	else if (magic_number == FAT_CIGAM)
 	{
 		printf("FAT_MAGIC");
 	}
@@ -215,7 +215,7 @@ int main(int ac, char **av)
 	char *ptr;
 	struct stat buf;
 
-	if (ac != 2)
+	if (ac <= 2)
 	{
 		fprintf(stderr, "Please give me argv");
 		return (EXIT_FAILURE);
