@@ -26,4 +26,7 @@ fclean: clean
 	rm -f $(NAME)
 	make -C libft/ fclean
 
+nm: libft
+	gcc -I ./libft/ -L libft -lft nm.c -o ft_nm
+
 re: fclean all
