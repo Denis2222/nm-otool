@@ -6,13 +6,13 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 15:39:31 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/17 16:51:33 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../nm.h"
 
-void	print_output(struct symtab_command *sym, char *ptr)
+void	print_output(struct symtab_command *sym, t_ofile *ofile)
 {
 	char			*strtable;
 	struct nlist_64	*symbols;
@@ -20,33 +20,31 @@ void	print_output(struct symtab_command *sym, char *ptr)
 	t_symtab		*liste;
 
 	i = 0;
-	symbols = (void*)ptr+sym->symoff; // Symbol table start location
-	strtable = (void*)ptr+sym->stroff; // Location of the string table
+	symbols = (void*)ofile->ptr+sym->symoff; // Symbol table start location
+	strtable = (void*)ofile->ptr+sym->stroff; // Location of the string table
 	while (i<sym->nsyms)
 	{
-		liste = addsymtabsort(&liste, newsymtab(sym, strtable + symbols[i].n_un.n_strx, ptr, i));
+		if (ft_strlen(strtable + symbols[i].n_un.n_strx) > 0)
+			liste = addsymtabsort(&liste, newsymtab(sym, strtable + symbols[i].n_un.n_strx, ofile->ptr, i));
 		i++;
 	}
-	showsymtabs(liste);
+	showsymtabs(liste, ofile);
 }
 
-void	handle_64(char *ptr)
+void	handle_64(t_ofile *ofile)
 {
 	unsigned int			i;
 	struct mach_header_64	*mh;
 	struct load_command		*lc;
-	struct symtab_command	*sym;
 
-	mh = (struct mach_header_64 *) ptr;
+	mh = (struct mach_header_64 *) ofile->ptr;
 	i = 0;
-	lc = (void*)(ptr + sizeof(*mh));
+	lc = (void*)(ofile->ptr + sizeof(*mh));
 	while (i < mh->ncmds)
 	{
 		if (lc->cmd == LC_SYMTAB)
 		{
-			sym = (struct symtab_command *)lc;
-
-			print_output(sym, ptr);
+			print_output((struct symtab_command *)lc, ofile);
 			break;
 		}
 		lc = (void *) lc + lc->cmdsize;
@@ -54,58 +52,83 @@ void	handle_64(char *ptr)
 	}
 }
 
-void nm(char *ptr)
+void nm(t_ofile *ofile, t_argvise *arg)
 {
-	uint32_t	magic_number;
+	struct mach_header *test;
 
-	magic_number = *(unsigned int *) ptr;
-	//printf("MAGIC_NUMBER get:%#x            REAL MH_MAGIC_64:%#x  FAT_MAGIC:%#x\n", magic_number, MH_MAGIC_64, FAT_MAGIC);
-	if (magic_number == MH_MAGIC_64)
+	checktype(ofile);
+	test = (void *)ofile->ptr;
+	if (ofile->is32 == 0 && ofile->isswap == 0)
+		handle_64(ofile);
+	/*else if (ofile->is32 == 1)
+		handle_32(ofile);*/
+	(void) arg;
+}
+
+void nmfat(t_ofile *ofile, t_argvise *arg)
+{
+	struct fat_header	*header;
+	struct fat_arch		*arch;
+	unsigned int		iarch;
+
+	iarch = 0;
+	header = ofile->ptr;
+
+	while (iarch < ofile->isfat)
 	{
-		handle_64(ptr);
-		puts("Je suis un binaire 64 bits");
-	}
-	else if (magic_number == FAT_MAGIC)
-	{
-		printf("FAT_MAGIC");
-	}
-	else
-	{
-		printf("%#x", magic_number);
+		//ft_printf("%s \n", ofile->path);
+		arch = (ofile->fatptr + sizeof(struct fat_header) + (sizeof(struct fat_arch) * iarch));
+		if (ofile->isfatswap)
+			ofile->ptr = ofile->fatptr + swap32(arch->offset);
+		else
+			ofile->ptr = ofile->fatptr + arch->offset;
+		ofile->arch = swap32(arch->cputype);
+		if (ofile->isfatswap)
+			show_archtype(swap32(arch->cputype));
+		else
+			show_archtype(arch->cputype);
+		nm(ofile, arg);
+		iarch++;
 	}
 }
 
-int main(int ac, char **av)
+void ofileheader(t_ofile *ofile, t_argvise *arg, int i)
 {
-	int fd;
-	char *ptr;
-	struct stat buf;
+	(void) i;
+	checkfat(ofile);
+ 	if (ofile->isfat)
+		nmfat(ofile, arg);
+	else
+	{
+		//ft_printf("%s", ofile->path);
+		nm(ofile, arg);
+	}
+}
 
-	if (ac != 2)
+int			main(int argc, char **argv)
+{
+	int			i;
+	t_ofile		*ofile;
+	t_argvise	*arg;
+	arg = new_argvise(argc, argv);
+
+	if (argc <= 1)
 	{
 		fprintf(stderr, "Please give me argv");
 		return (EXIT_FAILURE);
 	}
-	if ((fd = open(av[1], O_RDONLY)) < 0)
+
+	i = 0;
+	while (arg->files[i] != '\0')
 	{
-		perror("open");
-		return (EXIT_FAILURE);
+		if ((ofile = open_ofile(arg->files[i])))
+		{
+			ofileheader(ofile, arg, i);
+			close_ofile(ofile);
+		}
+		else
+			return (EXIT_FAILURE);
+		i++;
 	}
-	if (fstat(fd, &buf) < 0)
-	{
-		perror("fstat");
-		return (EXIT_FAILURE);
-	}
-	if ((ptr = mmap(0, buf.st_size, PROT_READ, MAP_PRIVATE, fd, 0)) == MAP_FAILED)
-	{
-		perror("mmap");
-		return (EXIT_FAILURE);
-	}
-	nm(ptr);
-	if (munmap(ptr, buf.st_size) < 0)
-	{
-		perror("munmap");
-		return (EXIT_FAILURE);
-	}
-	return (EXIT_SUCCESS);
+	return (0);
 }

@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 15:31:34 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 15:36:04 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/17 17:26:33 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,12 +58,50 @@ t_symtab *addsymtabsort(t_symtab **liste, t_symtab *new)
 	return (begin);
 }
 
-void showsymtab(t_symtab *s)
+char findtypeofsection(int n_sect, t_ofile *ofile)
+{
+	unsigned int			i;
+	struct mach_header_64	*mh;
+	struct load_command		*lc;
+	int g;
+	mh = (struct mach_header_64 *) ofile->ptr;
+	i = 0;
+	g = 0;
+	lc = (void*)(ofile->ptr + sizeof(*mh));
+	while (i < mh->ncmds)
+	{
+		if (lc->cmd == LC_SEGMENT_64)
+		{
+				struct segment_command_64 *sc;
+				sc = (struct segment_command_64 *)lc;
+				struct section_64 *se;
+				int		i;
+
+				i = 0;
+				se = (void *)sc + sizeof(struct segment_command_64);
+				while ((uint32_t)i < sc->nsects)
+				{
+					g++;
+					printf("%9s %s\n", "sectname", se->sectname);
+					if (g == n_sect)
+						printf("!!!!!!!!!!!!FOUNDIT!!!!!!!!!!!!!");
+					i++;
+				}
+		}
+		lc = (void *) lc + lc->cmdsize;
+		i++;
+	}
+	return ('c');
+}
+
+void showsymtab(t_symtab *s, t_ofile *ofile)
 {
 	char			*strtable;
 	struct nlist_64	*symbols;
 	unsigned int 	i;
 	char			c;
+
+	(void)ofile;
 	i = s->i;
 	symbols = (void*)s->ptr+s->sym->symoff; // Symbol table start location
 	strtable = (void*)s->ptr+s->sym->stroff; // Location of the string table
@@ -85,7 +123,7 @@ void showsymtab(t_symtab *s)
 				c = 'a';
 			break;
 			case N_SECT:
-				//findtypeofsection(symbols[i].n_sect, ptr);
+				findtypeofsection(symbols[i].n_sect, ofile);
 				if(symbols[i].n_sect == 1)
 					c = 't';
 				else if(symbols[i].n_sect == 2)
@@ -108,23 +146,21 @@ void showsymtab(t_symtab *s)
 
 		//printf("name:%s sym->cmd:%d  n_type:%#x n_value:%0.16llx \n", strtable + array[i].n_un.n_strx, sym->cmd, (array[i].n_type & N_TYPE), array[i].n_value);
 		if ((symbols[i].n_type & N_TYPE) == N_UNDF)
-			printf("                 %c %s  \n", c, strtable + symbols[i].n_un.n_strx);
+			printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
 		else if ((symbols[i].n_type & N_TYPE) == N_SECT)
 			printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
-
 }
 
-void showsymtabs(t_symtab *liste)
+void showsymtabs(t_symtab *liste, t_ofile *ofile)
 {
 	t_symtab *begin;
 	t_symtab *current;
 
 	begin = liste;
 	current = liste;
-
-		while (current)
-		{
-			showsymtab(current);
-			current = current->next;
-		}
+	while (current)
+	{
+		showsymtab(current, ofile);
+		current = current->next;
+	}
 }
