@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 15:31:34 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 17:26:33 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/18 17:14:33 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,16 +82,27 @@ char findtypeofsection(int n_sect, t_ofile *ofile)
 				while ((uint32_t)i < sc->nsects)
 				{
 					g++;
-					printf("%9s %s\n", "sectname", se->sectname);
+					//printf("%s %s\n", "sectname", se->sectname);
 					if (g == n_sect)
-						printf("!!!!!!!!!!!!FOUNDIT!!!!!!!!!!!!!");
+					{
+						//ft_printf("[%s %s %d t]\n", se->sectname, se->segname, g);
+						if (ft_strcmp(se->sectname, "__text") == 0)
+							return ('t');
+						else if(ft_strcmp(se->sectname, "__data") == 0)
+							return ('d');
+						else if(ft_strcmp(se->sectname, "__bss") == 0)
+							return ('b');
+						else
+							return ('s');
+					}
+					se++;
 					i++;
 				}
 		}
 		lc = (void *) lc + lc->cmdsize;
 		i++;
 	}
-	return ('c');
+	return ('s');
 }
 
 void showsymtab(t_symtab *s, t_ofile *ofile)
@@ -123,15 +134,8 @@ void showsymtab(t_symtab *s, t_ofile *ofile)
 				c = 'a';
 			break;
 			case N_SECT:
-				findtypeofsection(symbols[i].n_sect, ofile);
-				if(symbols[i].n_sect == 1)
-					c = 't';
-				else if(symbols[i].n_sect == 2)
-					c = 'd';
-				else if(symbols[i].n_sect == 3)
-					c = 'b';
-				else
-					c = 's';
+				c = findtypeofsection(symbols[i].n_sect, ofile);
+				//ft_printf("i am in NSECT search %c", c);
 			break;
 			case N_INDR:
 				c = 'i';
@@ -145,10 +149,14 @@ void showsymtab(t_symtab *s, t_ofile *ofile)
 		//printf(" %c ", c);
 
 		//printf("name:%s sym->cmd:%d  n_type:%#x n_value:%0.16llx \n", strtable + array[i].n_un.n_strx, sym->cmd, (array[i].n_type & N_TYPE), array[i].n_value);
-		if ((symbols[i].n_type & N_TYPE) == N_UNDF)
-			printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
-		else if ((symbols[i].n_type & N_TYPE) == N_SECT)
-			printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
+
+		if (c != 'u')
+		{
+			if ((symbols[i].n_type & N_TYPE) == N_UNDF)
+				printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
+			else if ((symbols[i].n_type & N_TYPE) == N_SECT)
+				printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
+		}
 }
 
 void showsymtabs(t_symtab *liste, t_ofile *ofile)

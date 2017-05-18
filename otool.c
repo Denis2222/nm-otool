@@ -127,8 +127,8 @@ void print_section(char *ptr, struct segment_command_64 *sc)
 		printf("%9s 0x%0.16llx\n", "addr", se->addr);
 		printf("%9s 0x%0.16llx\n", "size", se->size);
 		printf("%9s %d\n", "offset", se->offset);
-		if (!strcmp("__text", se->sectname) && !strcmp("__TEXT", se->segname))
-			print_memory((void*)ptr + se->offset, se->size);
+		/*if (!strcmp("__text", se->sectname) && !strcmp("__TEXT", se->segname))
+			print_memory((void*)ptr + se->offset, se->size);*/
 		printf("%9s 2^%d (%.0f)\n", "align", se->align, pow(2,se->align));
 		printf("%9s %d\n", "reloff", se->reloff);
 		printf("%9s %d\n", "nreloc", se->nreloc);
@@ -173,14 +173,17 @@ void	handle_64(char *ptr)
 	lc = (void*)(ptr + sizeof(*mh));
 	while (i < mh->ncmds)
 	{
-		printf("Load command %d\n", i);
+
 		if (lc->cmd == LC_SYMTAB)
 		{
+			printf("\n===LC_SYMTAB [%d]\n\n", i);
 			sym = (struct symtab_command *)lc;
 			print_output(sym, ptr);
+			//print_segment_64(lc, ptr);
 		}
 		else if(lc->cmd == LC_SEGMENT_64)
 		{
+			printf("\n===LC_SEGMENT_64 [%d]\n\n", i);
 			print_segment_64(lc, ptr);
 		}
 		lc = (void *) lc + lc->cmdsize;

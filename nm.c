@@ -15,53 +15,51 @@ typedef struct				s_loadcom
 {
 	struct symtab_command	*sym;
 	char					*name;
+	char					*ptr;
+	unsigned int			i;
 	struct s_loadcom 		*next;
 }							t_loadcom;
 
-t_loadcom *newloadcom(struct symtab_command *lc, char *str)
+t_loadcom *newloadcom(struct symtab_command *sym, char *name, char *ptr, unsigned int i)
 {
 	t_loadcom *new;
 
 	new = (t_loadcom*)malloc(sizeof(t_loadcom)+1);
-	new->sym = lc;
-	new->name = strdup(str);
+	new->sym = sym;
+	new->name = strdup(name);
+	new->ptr = ptr;
+	new->i = i;
 	new->next = NULL;
 	return (new);
-}
-
-t_loadcom *addloadcom(t_loadcom **liste, t_loadcom *new)
-{
-	t_loadcom *begin;
-	t_loadcom *current;
-
-	begin = *liste;
-	current = *liste;
-	if (current)
-	{
-		while (current->next)
-		{
-			current = current->next;
-		}
-		current->next = new;
-	} else
-	{
-		begin = new;
-	}
-	printf("addloadcom ");
-	return (begin);
 }
 
 t_loadcom *addloadcomsort(t_loadcom **liste, t_loadcom *new)
 {
 	t_loadcom *begin;
 	t_loadcom *current;
+	t_loadcom *prev;
+	t_loadcom *tmp;
 
 	begin = *liste;
 	current = *liste;
 	if (current)
 	{
+		if (ft_strcmp(current->name, new->name) > 0) //New < 1st
+		{
+			begin  = new;
+			begin->next = current;
+			return (begin);
+		}
 		while (current->next)
 		{
+			if (ft_strcmp(current->next->name, new->name) > 0) // New < next
+			{
+				tmp = current->next;
+				current->next = new;
+				new->next = tmp;
+				return (begin);
+			}
+			prev = current;
 			current = current->next;
 		}
 		current->next = new;
@@ -69,55 +67,21 @@ t_loadcom *addloadcomsort(t_loadcom **liste, t_loadcom *new)
 	{
 		begin = new;
 	}
-	printf("addloadcom ");
+	//printf("addloadcom ");
 	return (begin);
 }
 
-int nbloadcom(t_loadcom *liste)
-{
-	t_loadcom	*current;
-	int			i;
-
-	i = 0;
-	current = liste;
-	if (current)
-		while (current->next)
-		{
-			i++;
-			current = current->next;
-		}
-	return (i);
-}
-
-void showloadcom(t_loadcom *liste)
-{
-	t_loadcom *begin;
-	t_loadcom *current;
-
-	begin = liste;
-	current = liste;
-
-		while (current)
-		{
-			printf(" %s ", current->name);
-			current = current->next;
-		}
-}
-
-void	print_output(struct symtab_command *sym, char *ptr)
+void showsym(t_loadcom *s)
 {
 	char			*strtable;
 	struct nlist_64	*symbols;
-	unsigned int	i;
-	unsigned char	c;
-	t_loadcom *liste;
-
-	i = 0;
-	symbols = (void*)ptr+sym->symoff; // Symbol table start location
-	strtable = (void*)ptr+sym->stroff; // Location of the string table
+	unsigned int 	i;
+	char			c;
+	i = s->i;
+	symbols = (void*)s->ptr+s->sym->symoff; // Symbol table start location
+	strtable = (void*)s->ptr+s->sym->stroff; // Location of the string table
 	//printf("\n============%#x=================\nOutput symtab_command:\n", array[i].n_type);
-	while (i<sym->nsyms)
-	{
+
 		c = symbols[i].n_type;
 
 		switch(c & N_TYPE)
@@ -134,14 +98,15 @@ void	print_output(struct symtab_command *sym, char *ptr)
 				c = 'a';
 			break;
 			case N_SECT:
-				//if(symbols[i].n_sect == process_flags->text_nsect)
+				//findtypeofsection(symbols[i].n_sect, ptr);
+				if(symbols[i].n_sect == 0)
 					c = 't';
-				/*else if(symbols[i].n_sect == process_flags->data_nsect)
+				else if(symbols[i].n_sect == 1)
 					c = 'd';
-				else if(symbols[i].n_sect == process_flags->bss_nsect)
+				else if(symbols[i].n_sect == 2)
 					c = 'b';
 				else
-					c = 's';*/
+					c = 's';
 			break;
 			case N_INDR:
 				c = 'i';
@@ -156,17 +121,43 @@ void	print_output(struct symtab_command *sym, char *ptr)
 
 		//printf("name:%s sym->cmd:%d  n_type:%#x n_value:%0.16llx \n", strtable + array[i].n_un.n_strx, sym->cmd, (array[i].n_type & N_TYPE), array[i].n_value);
 		if ((symbols[i].n_type & N_TYPE) == N_UNDF)
-			printf("                 U %s  \n", strtable + symbols[i].n_un.n_strx);
+			printf("                 %c %s  \n", c, strtable + symbols[i].n_un.n_strx);
 		else if ((symbols[i].n_type & N_TYPE) == N_SECT)
-			printf("%0.16llx T %s\n", symbols[i].n_value, strtable + symbols[i].n_un.n_strx);
+			printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
 
+}
 
-		liste = addloadcomsort(&liste, newloadcom(sym, strtable + symbols[i].n_un.n_strx));
+void showloadcoms(t_loadcom *liste)
+{
+	t_loadcom *begin;
+	t_loadcom *current;
 
+	begin = liste;
+	current = liste;
+
+		while (current)
+		{
+			showsym(current);
+			current = current->next;
+		}
+}
+
+void	print_output(struct symtab_command *sym, char *ptr)
+{
+	char			*strtable;
+	struct nlist_64	*symbols;
+	unsigned int	i;
+	t_loadcom		*liste;
+
+	i = 0;
+	symbols = (void*)ptr+sym->symoff; // Symbol table start location
+	strtable = (void*)ptr+sym->stroff; // Location of the string table
+	while (i<sym->nsyms)
+	{
+		liste = addloadcomsort(&liste, newloadcom(sym, strtable + symbols[i].n_un.n_strx, ptr, i));
 		i++;
 	}
-	showloadcom(liste);
-	printf("   %d  ", nbloadcom(liste));
+	showloadcoms(liste);
 }
 
 void	handle_64(char *ptr)

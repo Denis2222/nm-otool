@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 16:51:33 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/18 17:17:36 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,8 +60,9 @@ void nm(t_ofile *ofile, t_argvise *arg)
 	test = (void *)ofile->ptr;
 	if (ofile->is32 == 0 && ofile->isswap == 0)
 		handle_64(ofile);
-	/*else if (ofile->is32 == 1)
-		handle_32(ofile);*/
+	else if (ofile->is32 == 1)
+		ft_printf(" IS 32 \n");
+		//handle_32(ofile);*/
 	(void) arg;
 }
 
