@@ -6,11 +6,52 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/18 17:17:36 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/19 19:50:08 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../nm.h"
+
+
+void	print_output_32(struct symtab_command *sym, t_ofile *ofile)
+{
+	char			*strtable;
+	struct nlist	*symbols;
+	unsigned int	i;
+	t_symtab		*liste;
+
+	i = 0;
+	symbols = (void*)ofile->ptr+sym->symoff; // Symbol table start location
+	strtable = (void*)ofile->ptr+sym->stroff; // Location of the string table
+	while (i<sym->nsyms)
+	{
+		if (ft_strlen(strtable + symbols[i].n_un.n_strx) > 0)
+			liste = addsymtabsort(&liste, newsymtab(sym, toswap32(ofile, strtable + symbols[i].n_un.n_strx), ofile->ptr, i));
+		i++;
+	}
+	showsymtabs(liste, ofile);
+}
+
+void	handle(t_ofile *ofile)
+{
+	unsigned int			i;
+	struct mach_header	*mh;
+	struct load_command		*lc;
+
+	mh = (struct mach_header *) ofile->ptr;
+	i = 0;
+	lc = (void*)(ofile->ptr + sizeof(*mh));
+	while (i < mh->ncmds)
+	{
+		if (lc->cmd == LC_SYMTAB)
+		{
+			print_output_32((struct symtab_command *)lc, ofile);
+			break;
+		}
+		lc = (void *) lc + lc->cmdsize;
+		i++;
+	}
+}
 
 void	print_output(struct symtab_command *sym, t_ofile *ofile)
 {
@@ -61,8 +102,7 @@ void nm(t_ofile *ofile, t_argvise *arg)
 	if (ofile->is32 == 0 && ofile->isswap == 0)
 		handle_64(ofile);
 	else if (ofile->is32 == 1)
-		ft_printf(" IS 32 \n");
-		//handle_32(ofile);*/
+		handle(ofile);
 	(void) arg;
 }
 
