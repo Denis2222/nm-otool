@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 15:31:34 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/24 21:55:13 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/24 22:07:17 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -164,6 +164,8 @@ void showsymtab_32(t_symtab *s, t_ofile *ofile)
 	char			c;
 
 	(void)ofile;
+
+
 	i = s->i;
 	symbols = (void*)s->ptr+toswap32(ofile,s->sym->symoff); // Symbol table start location
 	strtable = (void*)s->ptr+toswap32(ofile,s->sym->stroff); // Location of the string table
@@ -199,6 +201,8 @@ void showsymtab_32(t_symtab *s, t_ofile *ofile)
 				c = '?';
 			break;
 		}
+		ft_printf("[%s %c %d]",s->name, c, N_ABS);
+
 		if((symbols[i].n_type & N_EXT) && c != '?')
 				c = toupper(c);
 		//printf(" %c ", c);
@@ -287,7 +291,7 @@ void showsymtabs(t_symtab *liste, t_ofile *ofile)
 			showsymtab_32(current, ofile);
 
 		//if (current->i == 76)
-			ft_printf("next-> %s", current->name);
+			//ft_printf("next-> %s", current->name);
 		current = current->next;
 	}
 }

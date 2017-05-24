@@ -5,7 +5,7 @@ SRCS = ../src/open.c \
 	   ./src/nm.c
 
 NAME = ft_nm
-GCC_FLAG = -Wall -Werror -Wextra
+GCC_FLAG = -Wall -Werror -Wextra -g
 CC = gcc $(GCC_FLAG)
 
 OBJS = $(SRCS:.c=.o)
