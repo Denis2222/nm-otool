@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 15:31:34 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/18 17:14:33 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/24 21:55:13 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@ t_symtab *newsymtab(struct symtab_command *sym, char *name, char *ptr, unsigned 
 
 	new = (t_symtab*)malloc(sizeof(t_symtab)+1);
 	new->sym = sym;
+	//ft_printf(" $$$$$$$$$$$$$ %s ", name);
 	new->name = strdup(name);
 	new->ptr = ptr;
 	new->i = i;
@@ -31,10 +32,12 @@ t_symtab *addsymtabsort(t_symtab **liste, t_symtab *new)
 	t_symtab *current;
 	t_symtab *tmp;
 
+	//ft_printf("addsymtab %s ", new->name);
 	begin = *liste;
 	current = *liste;
 	if (current)
 	{
+		//ft_printf(" %s %s ", current->name, new->name);
 		if (ft_strcmp(current->name, new->name) > 0) //New < 1st
 		{
 			begin  = new;
@@ -58,7 +61,7 @@ t_symtab *addsymtabsort(t_symtab **liste, t_symtab *new)
 	return (begin);
 }
 
-char findtypeofsection(int n_sect, t_ofile *ofile)
+char findtypeofsection_64(int n_sect, t_ofile *ofile)
 {
 	unsigned int			i;
 	struct mach_header_64	*mh;
@@ -105,26 +108,75 @@ char findtypeofsection(int n_sect, t_ofile *ofile)
 	return ('s');
 }
 
-void showsymtab(t_symtab *s, t_ofile *ofile)
+char findtypeofsection_32(int n_sect, t_ofile *ofile)
+{
+	unsigned int			i;
+	struct mach_header	*mh;
+	struct load_command		*lc;
+	int g;
+	mh = (struct mach_header *) ofile->ptr;
+	i = 0;
+	g = 0;
+	lc = (void*)(ofile->ptr + sizeof(*mh));
+	while (i < toswap32(ofile,mh->ncmds))
+	{
+		if (toswap32(ofile,lc->cmd) == LC_SEGMENT)
+		{
+				struct segment_command *sc;
+				sc = (struct segment_command *)lc;
+				struct section *se;
+				int		i;
+
+				i = 0;
+				se = (void *)sc + sizeof(struct segment_command);
+				while ((uint32_t)i < toswap32(ofile,sc->nsects))
+				{
+					g++;
+					//printf("%s %s\n", "sectname", se->sectname);
+					if (g == n_sect)
+					{
+						//ft_printf("[%s %s %d t]\n", se->sectname, se->segname, g);
+						if (ft_strcmp(se->sectname, "__text") == 0)
+							return ('t');
+						else if(ft_strcmp(se->sectname, "__data") == 0)
+							return ('d');
+						else if(ft_strcmp(se->sectname, "__bss") == 0)
+							return ('b');
+						else
+							return ('s');
+					}
+					se++;
+					i++;
+				}
+		}
+		lc = (void *) lc + toswap32(ofile, lc->cmdsize);
+		i++;
+	}
+	return ('s');
+}
+
+
+void showsymtab_32(t_symtab *s, t_ofile *ofile)
 {
 	char			*strtable;
-	struct nlist_64	*symbols;
+	struct nlist	*symbols;
 	unsigned int 	i;
 	char			c;
 
 	(void)ofile;
 	i = s->i;
-	symbols = (void*)s->ptr+s->sym->symoff; // Symbol table start location
-	strtable = (void*)s->ptr+s->sym->stroff; // Location of the string table
+	symbols = (void*)s->ptr+toswap32(ofile,s->sym->symoff); // Symbol table start location
+	strtable = (void*)s->ptr+toswap32(ofile,s->sym->stroff); // Location of the string table
 	//printf("\n============%#x=================\nOutput symtab_command:\n", array[i].n_type);
 
+		//ft_printf("Before explosion %d\n", i);
 		c = symbols[i].n_type;
 
 		switch(c & N_TYPE)
 		{
 			case N_UNDF:
 				c = 'u';
-				if(symbols[i].n_value != 0)
+				if(toswap32(ofile, symbols[i].n_value) != 0)
 					c = 'c';
 			break;
 			case N_PBUD:
@@ -134,8 +186,11 @@ void showsymtab(t_symtab *s, t_ofile *ofile)
 				c = 'a';
 			break;
 			case N_SECT:
-				c = findtypeofsection(symbols[i].n_sect, ofile);
 				//ft_printf("i am in NSECT search %c", c);
+				if (!ofile->is32)
+					c = findtypeofsection_64(symbols[i].n_sect, ofile);
+				else if (ofile->is32)
+					c = findtypeofsection_32(symbols[i].n_sect, ofile);
 			break;
 			case N_INDR:
 				c = 'i';
@@ -153,8 +208,65 @@ void showsymtab(t_symtab *s, t_ofile *ofile)
 		if (c != 'u')
 		{
 			if ((symbols[i].n_type & N_TYPE) == N_UNDF)
-				printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
+				ft_printf("         %c %s\n", c, s->name);
 			else if ((symbols[i].n_type & N_TYPE) == N_SECT)
+				ft_printf("%0.8x %c %s\n", toswap32(ofile,symbols[i].n_value), c, s->name);//, strtable + symbols[i].n_un.n_strx
+		}
+}
+
+void showsymtab_64(t_symtab *s, t_ofile *ofile)
+{
+	char			*strtable;
+	struct nlist_64	*symbols;
+	unsigned int 	i;
+	char			c;
+
+	(void)ofile;
+	i = s->i;
+	symbols = (void*)s->ptr+toswap32(ofile,s->sym->symoff); // Symbol table start location
+	strtable = (void*)s->ptr+toswap32(ofile,s->sym->stroff); // Location of the string table
+	//printf("\n============%#x=================\nOutput symtab_command:\n", array[i].n_type);
+
+		c = symbols[i].n_type;
+
+		switch(c & N_TYPE)
+		{
+			case N_UNDF:
+				c = 'u';
+				if(toswap32(ofile, symbols[i].n_value) != 0)
+					c = 'c';
+			break;
+			case N_PBUD:
+				c = 'u';
+			break;
+			case N_ABS:
+				c = 'a';
+			break;
+			case N_SECT:
+				//ft_printf("i am in NSECT search %c", c);
+				if (!ofile->is32)
+					c = findtypeofsection_64(symbols[i].n_sect, ofile);
+				else if (ofile->is32)
+					c = findtypeofsection_32(symbols[i].n_sect, ofile);
+			break;
+			case N_INDR:
+				c = 'i';
+			break;
+			default:
+				c = '?';
+			break;
+		}
+		if((symbols[i].n_type & N_EXT) && c != '?')
+			c = toupper(c);
+		//printf(" %c ", c);
+
+		//printf("name:%s sym->cmd:%d  n_type:%#x n_value:%0.16llx \n", strtable + array[i].n_un.n_strx, sym->cmd, (array[i].n_type & N_TYPE), array[i].n_value);
+
+		if (c != 'u')
+		{
+			if ((toswap32(ofile,symbols[i].n_type) & N_TYPE) == N_UNDF)
+				printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
+			else if ((toswap32(ofile,symbols[i].n_type) & N_TYPE) == N_SECT)
 				printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
 		}
 }
@@ -168,7 +280,14 @@ void showsymtabs(t_symtab *liste, t_ofile *ofile)
 	current = liste;
 	while (current)
 	{
-		showsymtab(current, ofile);
+		//ft_printf("sst:%s\n", current->name);
+		if (!ofile->is32)
+			showsymtab_64(current, ofile);
+		else
+			showsymtab_32(current, ofile);
+
+		//if (current->i == 76)
+			ft_printf("next-> %s", current->name);
 		current = current->next;
 	}
 }

@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 13:49:12 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 14:58:38 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/24 21:49:53 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,6 +91,22 @@ void show_archtype(cpu_type_t arch)
 		ft_printf("(specific architecture)");
 }
 
+
+void show_archtypefor(cpu_type_t arch)
+{
+	if (arch == CPU_TYPE_X86 || arch == CPU_TYPE_I386 || arch == CPU_TYPE_X86_64)
+		ft_printf("(for architecture i386)");
+	else if (arch == CPU_TYPE_POWERPC)
+		ft_printf("(for architecture ppc)");
+	else if (arch == CPU_TYPE_POWERPC64)
+		ft_printf("(for architecture ppc64)");
+	else if (arch == CPU_TYPE_ARM)
+		ft_printf("(for architecture arm)");
+	else if (arch == CPU_TYPE_ARM64)
+		ft_printf("(for architecture arm64)");
+	else
+		ft_printf("(for specific architecture)");
+}
 
 
 t_ofile *open_ofile(char *path)

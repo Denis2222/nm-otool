@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 13:47:40 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 15:02:59 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/24 21:50:07 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,5 +41,6 @@ uint32_t 	toswap32(t_ofile *ofile, uint32_t var);
 void 		checkfat(t_ofile *ofile);
 void 		checktype(t_ofile *ofile);
 void 		show_archtype(cpu_type_t arch);
+void 		show_archtypefor(cpu_type_t arch);
 t_ofile		*open_ofile(char *path);
 void		close_ofile(t_ofile *ofile);

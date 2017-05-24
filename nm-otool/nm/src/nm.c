@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/19 19:50:08 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/24 21:50:29 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,18 +21,24 @@ void	print_output_32(struct symtab_command *sym, t_ofile *ofile)
 	t_symtab		*liste;
 
 	i = 0;
-	symbols = (void*)ofile->ptr+sym->symoff; // Symbol table start location
-	strtable = (void*)ofile->ptr+sym->stroff; // Location of the string table
-	while (i<sym->nsyms)
+	symbols = (void*)ofile->ptr+toswap32(ofile,sym->symoff); // Symbol table start location
+	strtable = (void*)ofile->ptr+toswap32(ofile,sym->stroff); // Location of the string table
+
+	//return ;
+	liste = NULL;
+	while (i < toswap32(ofile,sym->nsyms))
 	{
-		if (ft_strlen(strtable + symbols[i].n_un.n_strx) > 0)
-			liste = addsymtabsort(&liste, newsymtab(sym, toswap32(ofile, strtable + symbols[i].n_un.n_strx), ofile->ptr, i));
+		if (ft_strlen(strtable + toswap32(ofile,symbols[i].n_un.n_strx)) > 0)
+		{
+			//ft_printf("[%d]", i);
+			liste = addsymtabsort(&liste, newsymtab(sym, strtable + toswap32(ofile,symbols[i].n_un.n_strx), ofile->ptr, i));
+		}
 		i++;
 	}
 	showsymtabs(liste, ofile);
 }
 
-void	handle(t_ofile *ofile)
+void	handle_32(t_ofile *ofile)
 {
 	unsigned int			i;
 	struct mach_header	*mh;
@@ -41,19 +47,19 @@ void	handle(t_ofile *ofile)
 	mh = (struct mach_header *) ofile->ptr;
 	i = 0;
 	lc = (void*)(ofile->ptr + sizeof(*mh));
-	while (i < mh->ncmds)
+	while (i < toswap32(ofile, mh->ncmds))
 	{
-		if (lc->cmd == LC_SYMTAB)
+		if (toswap32(ofile,lc->cmd) == LC_SYMTAB)
 		{
 			print_output_32((struct symtab_command *)lc, ofile);
 			break;
 		}
-		lc = (void *) lc + lc->cmdsize;
+		lc = (void *) lc + toswap32(ofile,lc->cmdsize);
 		i++;
 	}
 }
 
-void	print_output(struct symtab_command *sym, t_ofile *ofile)
+void	print_output_64(struct symtab_command *sym, t_ofile *ofile)
 {
 	char			*strtable;
 	struct nlist_64	*symbols;
@@ -63,6 +69,7 @@ void	print_output(struct symtab_command *sym, t_ofile *ofile)
 	i = 0;
 	symbols = (void*)ofile->ptr+sym->symoff; // Symbol table start location
 	strtable = (void*)ofile->ptr+sym->stroff; // Location of the string table
+	liste = NULL;
 	while (i<sym->nsyms)
 	{
 		if (ft_strlen(strtable + symbols[i].n_un.n_strx) > 0)
@@ -85,7 +92,7 @@ void	handle_64(t_ofile *ofile)
 	{
 		if (lc->cmd == LC_SYMTAB)
 		{
-			print_output((struct symtab_command *)lc, ofile);
+			print_output_64((struct symtab_command *)lc, ofile);
 			break;
 		}
 		lc = (void *) lc + lc->cmdsize;
@@ -93,20 +100,26 @@ void	handle_64(t_ofile *ofile)
 	}
 }
 
-void nm(t_ofile *ofile, t_argvise *arg)
+void nm(t_ofile *ofile, t_argvise *arg, int i)
 {
 	struct mach_header *test;
 
+	(void)i;
 	checktype(ofile);
 	test = (void *)ofile->ptr;
 	if (ofile->is32 == 0 && ofile->isswap == 0)
 		handle_64(ofile);
-	else if (ofile->is32 == 1)
-		handle(ofile);
+	else if (ofile->is32 == 1 && ofile->isswap == 0)
+		handle_32(ofile);
+		//ft_printf("is32");
+	else if (ofile->isswap == 1 && ofile->is32 == 0)
+		handle_64(ofile);
+	else if (ofile->isswap == 1 && ofile->is32 == 1)
+		handle_32(ofile);
 	(void) arg;
 }
 
-void nmfat(t_ofile *ofile, t_argvise *arg)
+void nmfat(t_ofile *ofile, t_argvise *arg, int i)
 {
 	struct fat_header	*header;
 	struct fat_arch		*arch;
@@ -124,25 +137,32 @@ void nmfat(t_ofile *ofile, t_argvise *arg)
 		else
 			ofile->ptr = ofile->fatptr + arch->offset;
 		ofile->arch = swap32(arch->cputype);
+		ft_printf("\n");
 		if (ofile->isfatswap)
-			show_archtype(swap32(arch->cputype));
+		{
+			ft_printf("%s ", arg->files[i]);
+			show_archtypefor(swap32(arch->cputype));
+		}
 		else
-			show_archtype(arch->cputype);
-		nm(ofile, arg);
+		{
+			ft_printf("%s", arg->files[i]);
+			show_archtypefor(arch->cputype);
+		}
+		ft_printf(":\n");
+		nm(ofile, arg, i);
 		iarch++;
 	}
 }
 
 void ofileheader(t_ofile *ofile, t_argvise *arg, int i)
 {
-	(void) i;
 	checkfat(ofile);
  	if (ofile->isfat)
-		nmfat(ofile, arg);
+		nmfat(ofile, arg, i);
 	else
 	{
 		//ft_printf("%s", ofile->path);
-		nm(ofile, arg);
+		nm(ofile, arg, i);
 	}
 }
 
