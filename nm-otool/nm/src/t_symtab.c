@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 15:31:34 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/24 22:07:17 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 08:28:35 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -188,11 +188,7 @@ void showsymtab_32(t_symtab *s, t_ofile *ofile)
 				c = 'a';
 			break;
 			case N_SECT:
-				//ft_printf("i am in NSECT search %c", c);
-				if (!ofile->is32)
-					c = findtypeofsection_64(symbols[i].n_sect, ofile);
-				else if (ofile->is32)
-					c = findtypeofsection_32(symbols[i].n_sect, ofile);
+				c = findtypeofsection_32(symbols[i].n_sect, ofile);
 			break;
 			case N_INDR:
 				c = 'i';
@@ -201,8 +197,11 @@ void showsymtab_32(t_symtab *s, t_ofile *ofile)
 				c = '?';
 			break;
 		}
-		ft_printf("[%s %c %d]",s->name, c, N_ABS);
 
+		if ((c & N_EXT) && !(c & N_TYPE))
+			c = 'a';
+		//if(strcmp(s->name, "__mh_execute_header") == 0)
+			//ft_printf("SPOTTED N_TYPE:%d  N_EXT:%d  %c !! ", c & N_TYPE, c & N_EXT, c);
 		if((symbols[i].n_type & N_EXT) && c != '?')
 				c = toupper(c);
 		//printf(" %c ", c);
@@ -214,6 +213,8 @@ void showsymtab_32(t_symtab *s, t_ofile *ofile)
 			if ((symbols[i].n_type & N_TYPE) == N_UNDF)
 				ft_printf("         %c %s\n", c, s->name);
 			else if ((symbols[i].n_type & N_TYPE) == N_SECT)
+				ft_printf("%0.8x %c %s\n", toswap32(ofile,symbols[i].n_value), c, s->name);//, strtable + symbols[i].n_un.n_strx
+			else if (c == 'A')
 				ft_printf("%0.8x %c %s\n", toswap32(ofile,symbols[i].n_value), c, s->name);//, strtable + symbols[i].n_un.n_strx
 		}
 }
@@ -229,7 +230,6 @@ void showsymtab_64(t_symtab *s, t_ofile *ofile)
 	i = s->i;
 	symbols = (void*)s->ptr+toswap32(ofile,s->sym->symoff); // Symbol table start location
 	strtable = (void*)s->ptr+toswap32(ofile,s->sym->stroff); // Location of the string table
-	//printf("\n============%#x=================\nOutput symtab_command:\n", array[i].n_type);
 
 		c = symbols[i].n_type;
 
@@ -247,11 +247,7 @@ void showsymtab_64(t_symtab *s, t_ofile *ofile)
 				c = 'a';
 			break;
 			case N_SECT:
-				//ft_printf("i am in NSECT search %c", c);
-				if (!ofile->is32)
-					c = findtypeofsection_64(symbols[i].n_sect, ofile);
-				else if (ofile->is32)
-					c = findtypeofsection_32(symbols[i].n_sect, ofile);
+				c = findtypeofsection_64(symbols[i].n_sect, ofile);
 			break;
 			case N_INDR:
 				c = 'i';
@@ -260,18 +256,23 @@ void showsymtab_64(t_symtab *s, t_ofile *ofile)
 				c = '?';
 			break;
 		}
+
+		if ((c & N_EXT) && !(c & N_TYPE))
+			c = 'a';
+
 		if((symbols[i].n_type & N_EXT) && c != '?')
 			c = toupper(c);
-		//printf(" %c ", c);
-
-		//printf("name:%s sym->cmd:%d  n_type:%#x n_value:%0.16llx \n", strtable + array[i].n_un.n_strx, sym->cmd, (array[i].n_type & N_TYPE), array[i].n_value);
-
-		if (c != 'u')
+		//ft_printf("%s   :   ", s->name);
+		if (c != 'u' && c != '?')
 		{
 			if ((toswap32(ofile,symbols[i].n_type) & N_TYPE) == N_UNDF)
-				printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
+				ft_printf("                 %c %s\n", c, strtable + symbols[i].n_un.n_strx);
 			else if ((toswap32(ofile,symbols[i].n_type) & N_TYPE) == N_SECT)
-				printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
+				ft_printf("%0.16llx %c %s\n", symbols[i].n_value, c, strtable + symbols[i].n_un.n_strx);
+			else if (c == 'A')
+				ft_printf("%0.16llx %c %s\n", toswap64(ofile, symbols[i].n_value), c, s->name);//, strtable + symbols[i].n_un.n_strx
+			else
+				ft_printf("%0.16llx %c %s\n", toswap64(ofile, symbols[i].n_value), c, s->name);
 		}
 }
 

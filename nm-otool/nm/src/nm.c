@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/24 21:50:29 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 08:29:32 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ void	print_output_32(struct symtab_command *sym, t_ofile *ofile)
 		{
 			//ft_printf("[%d]", i);
 			liste = addsymtabsort(&liste, newsymtab(sym, strtable + toswap32(ofile,symbols[i].n_un.n_strx), ofile->ptr, i));
+			//ft_printf("special : %s\n", strtable + toswap32(ofile,symbols[i].n_un.n_strx));
 		}
 		i++;
 	}
@@ -100,13 +101,20 @@ void	handle_64(t_ofile *ofile)
 	}
 }
 
-void nm(t_ofile *ofile, t_argvise *arg, int i)
+void nm(t_ofile *ofile, t_argvise *arg, int i, int show)
 {
 	struct mach_header *test;
 
 	(void)i;
-	checktype(ofile);
+	if (!checktype(ofile))
+	{
+		ft_dprintf(2, "Not mach-o header can't explore");
+		return ;
+	}
 	test = (void *)ofile->ptr;
+	(void)show;
+	if (arg->nfiles > 1 && show)
+		ft_printf("\n%s:\n", arg->files[i]);
 	if (ofile->is32 == 0 && ofile->isswap == 0)
 		handle_64(ofile);
 	else if (ofile->is32 == 1 && ofile->isswap == 0)
@@ -124,10 +132,32 @@ void nmfat(t_ofile *ofile, t_argvise *arg, int i)
 	struct fat_header	*header;
 	struct fat_arch		*arch;
 	unsigned int		iarch;
+	cpu_type_t 			cpu;
 
 	iarch = 0;
 	header = ofile->ptr;
 
+	while (iarch < ofile->isfat)
+	{
+		arch = (ofile->fatptr + sizeof(struct fat_header) + (sizeof(struct fat_arch) * iarch));
+		if (ofile->isfatswap)
+			ofile->ptr = ofile->fatptr + swap32(arch->offset);
+		else
+			ofile->ptr = ofile->fatptr + arch->offset;
+		ofile->arch = swap32(arch->cputype);
+		if (ofile->isfatswap)
+			cpu = swap32(arch->cputype);
+		else
+			cpu = arch->cputype;
+		if (cpu == CPU_TYPE_X86_64)
+		{
+			nm(ofile, arg, i, 0);
+			return ;
+		}
+		iarch++;
+	}
+
+	iarch = 0;
 	while (iarch < ofile->isfat)
 	{
 		//ft_printf("%s \n", ofile->path);
@@ -136,7 +166,7 @@ void nmfat(t_ofile *ofile, t_argvise *arg, int i)
 			ofile->ptr = ofile->fatptr + swap32(arch->offset);
 		else
 			ofile->ptr = ofile->fatptr + arch->offset;
-		ofile->arch = swap32(arch->cputype);
+		//ofile->arch = swap32(arch->cputype);
 		ft_printf("\n");
 		if (ofile->isfatswap)
 		{
@@ -149,7 +179,7 @@ void nmfat(t_ofile *ofile, t_argvise *arg, int i)
 			show_archtypefor(arch->cputype);
 		}
 		ft_printf(":\n");
-		nm(ofile, arg, i);
+		nm(ofile, arg, i, 0);
 		iarch++;
 	}
 }
@@ -162,7 +192,7 @@ void ofileheader(t_ofile *ofile, t_argvise *arg, int i)
 	else
 	{
 		//ft_printf("%s", ofile->path);
-		nm(ofile, arg, i);
+		nm(ofile, arg, i, 1);
 	}
 }
 
@@ -187,8 +217,8 @@ int			main(int argc, char **argv)
 			ofileheader(ofile, arg, i);
 			close_ofile(ofile);
 		}
-		else
-			return (EXIT_FAILURE);
+		//else
+			//return (EXIT_FAILURE);
 		i++;
 	}
 	return (0);
