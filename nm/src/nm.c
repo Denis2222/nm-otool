@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 17:06:28 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 17:46:06 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,9 @@ void	nm(t_ofile *ofile, t_argvise *arg, int i, int show)
 
 	if (!checktype(ofile))
 	{
-		ft_dprintf(2, "%s: %s: The file was not recognized as a valid object file.\n", arg->argv[0], arg->files[i]);
+		ft_dprintf(2,
+			"%s: %s: The file was not recognized as a valid object file.\n",
+			arg->argv[0], arg->files[i]);
 		return ;
 	}
 	test = (void *)ofile->ptr;

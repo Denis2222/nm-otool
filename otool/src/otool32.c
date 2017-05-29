@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:27:26 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 17:24:23 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 17:46:11 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,8 @@ void	print_memory_32(t_ofile *ofile, struct section *se)
 	{
 		ft_printf("%08x", toswap32(ofile, se->addr) + c);
 		ft_putchar('	');
-		print_line(str, c, toswap32(ofile, se->size), (toswap32(ofile, mh->cputype) == CPU_TYPE_POWERPC));
+		print_line(str, c, toswap32(ofile, se->size),
+			(toswap32(ofile, mh->cputype) == CPU_TYPE_POWERPC));
 		c += 16;
 	}
 }
