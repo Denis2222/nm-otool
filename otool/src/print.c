@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:30:53 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 13:49:47 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 16:53:08 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,6 @@ void	print_line(unsigned char *str, size_t start, size_t max, int isppc)
 	i = start;
 	while (i < start + 16 && i < max)
 	{
-		(void)isppc;
 		if (isppc)
 		{
 			ft_puthex(str[i]);

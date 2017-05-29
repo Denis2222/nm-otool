@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/01 00:56:48 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 16:26:22 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 16:35:54 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,7 @@ void	handle_64(t_ofile *ofile);
 void	print_line(unsigned char *str, size_t start, size_t max, int isppc);
 void	ft_puthex(unsigned char c);
 
-void	otool(t_ofile *ofile, t_argvise *arg, int i);
+void	otool(t_ofile *ofile, t_argvise *arg, int i, int show);
 void	otoolfat(t_ofile *ofile, t_argvise *arg, int i);
 void	ofileheader(t_ofile *ofile, t_argvise *arg, int i);
 

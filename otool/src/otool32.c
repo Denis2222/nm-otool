@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:27:26 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 13:52:13 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 17:24:23 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,18 +14,19 @@
 
 void	print_memory_32(t_ofile *ofile, struct section *se)
 {
-	unsigned char	*str;
-	size_t			c;
+	unsigned char		*str;
+	struct mach_header	*mh;
+	size_t				c;
 
-	ft_printf(":\nContents of (__TEXT,__text) section\n");
+	mh = ofile->ptr;
+	ft_printf("\nContents of (__TEXT,__text) section\n");
 	str = (unsigned char *)((void*)ofile->ptr + toswap32(ofile, se->offset));
 	c = 0;
 	while (c < toswap32(ofile, se->size))
 	{
 		ft_printf("%08x", toswap32(ofile, se->addr) + c);
 		ft_putchar('	');
-		print_line(str, c, toswap32(ofile, se->size), (ofile->arch ==
-			CPU_TYPE_POWERPC || ofile->arch == CPU_TYPE_POWERPC64));
+		print_line(str, c, toswap32(ofile, se->size), (toswap32(ofile, mh->cputype) == CPU_TYPE_POWERPC));
 		c += 16;
 	}
 }

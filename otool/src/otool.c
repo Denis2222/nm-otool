@@ -6,13 +6,13 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/01 00:54:42 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 16:25:58 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 17:33:56 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../otool.h"
 
-void	otool(t_ofile *ofile, t_argvise *arg, int i)
+void	otool(t_ofile *ofile, t_argvise *arg, int i, int show)
 {
 	struct mach_header *test;
 
@@ -22,6 +22,8 @@ void	otool(t_ofile *ofile, t_argvise *arg, int i)
 		return ;
 	}
 	test = (void *)ofile->ptr;
+	if (show)
+		ft_printf("%s:", arg->files[i]);
 	if (ofile->is32 == 0 && ofile->isswap == 0)
 		handle_64(ofile);
 	else if (ofile->is32 == 1)
@@ -56,29 +58,56 @@ int		main(int argc, char **argv)
 	return (0);
 }
 
-void	otoolfat(t_ofile *ofile, t_argvise *arg, int i)
+int		otoolfat_special(t_ofile *ofile, int i, t_argvise *arg)
 {
-	struct fat_header	*header;
 	struct fat_arch		*arch;
+	struct fat_header	*header;
 	unsigned int		iarch;
 
 	iarch = 0;
 	header = ofile->ptr;
 	while (iarch < ofile->isfat)
 	{
-		ft_printf("%s ", ofile->path);
 		arch = (ofile->fatptr + sizeof(struct fat_header) +
 			(sizeof(struct fat_arch) * iarch));
 		if (ofile->isfatswap)
 			ofile->ptr = ofile->fatptr + swap32(arch->offset);
 		else
 			ofile->ptr = ofile->fatptr + arch->offset;
-		ofile->arch = swap32(arch->cputype);
+		if ((ofile->isfatswap && swap32(arch->cputype) == CPU_TYPE_X86_64)
+			|| arch->cputype == CPU_TYPE_X86_64)
+		{
+			otool(ofile, arg, i, 1);
+			return (1);
+		}
+		iarch++;
+	}
+	return (0);
+}
+
+void	otoolfat(t_ofile *ofile, t_argvise *arg, int i)
+{
+	struct fat_arch		*arch;
+	unsigned int		iarch;
+
+	iarch = 0;
+	if (otoolfat_special(ofile, i, arg))
+		return ;
+	while (iarch < ofile->isfat)
+	{
+		arch = (ofile->fatptr + sizeof(struct fat_header) +
+			(sizeof(struct fat_arch) * iarch));
+		if (ofile->isfatswap)
+			ofile->ptr = ofile->fatptr + swap32(arch->offset);
+		else
+			ofile->ptr = ofile->fatptr + arch->offset;
+		ft_printf("%s ", arg->files[i]);
 		if (ofile->isfatswap)
 			show_archtype(swap32(arch->cputype));
 		else
 			show_archtype(arch->cputype);
-		otool(ofile, arg, i);
+		ft_printf(":");
+		otool(ofile, arg, i, 0);
 		iarch++;
 	}
 }
@@ -91,7 +120,6 @@ void	ofileheader(t_ofile *ofile, t_argvise *arg, int i)
 		otoolfat(ofile, arg, i);
 	else
 	{
-		ft_printf("%s", ofile->path);
-		otool(ofile, arg, i);
+		otool(ofile, arg, i, 1);
 	}
 }

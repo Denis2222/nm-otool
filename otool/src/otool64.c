@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:26:48 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 13:50:29 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 17:24:22 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,7 @@ void	print_memory_64(const void *addr, size_t size, uint64_t offset)
 	unsigned char	*str;
 	size_t			c;
 
-	ft_printf(":\nContents of (__TEXT,__text) section\n");
+	ft_printf("\nContents of (__TEXT,__text) section\n");
 	str = (unsigned char *)addr;
 	c = 0;
 	while (c < size)
