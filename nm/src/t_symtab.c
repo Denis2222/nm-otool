@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 15:31:34 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 08:28:35 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 09:23:10 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@ t_symtab *newsymtab(struct symtab_command *sym, char *name, char *ptr, unsigned 
 	new = (t_symtab*)malloc(sizeof(t_symtab)+1);
 	new->sym = sym;
 	//ft_printf(" $$$$$$$$$$$$$ %s ", name);
-	new->name = strdup(name);
+	new->name = ft_strdup(name);
 	new->ptr = ptr;
 	new->i = i;
 	new->next = NULL;
@@ -203,7 +203,7 @@ void showsymtab_32(t_symtab *s, t_ofile *ofile)
 		//if(strcmp(s->name, "__mh_execute_header") == 0)
 			//ft_printf("SPOTTED N_TYPE:%d  N_EXT:%d  %c !! ", c & N_TYPE, c & N_EXT, c);
 		if((symbols[i].n_type & N_EXT) && c != '?')
-				c = toupper(c);
+				c = ft_toupper(c);
 		//printf(" %c ", c);
 
 		//printf("name:%s sym->cmd:%d  n_type:%#x n_value:%0.16llx \n", strtable + array[i].n_un.n_strx, sym->cmd, (array[i].n_type & N_TYPE), array[i].n_value);
@@ -261,7 +261,7 @@ void showsymtab_64(t_symtab *s, t_ofile *ofile)
 			c = 'a';
 
 		if((symbols[i].n_type & N_EXT) && c != '?')
-			c = toupper(c);
+			c = ft_toupper(c);
 		//ft_printf("%s   :   ", s->name);
 		if (c != 'u' && c != '?')
 		{

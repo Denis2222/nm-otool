@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:26:48 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 14:32:32 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 09:18:24 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ void print_section_64(t_ofile *ofile, struct segment_command_64 *sc)
 	se = (void *)sc + sizeof(struct segment_command_64);
 	while (i < sc->nsects)
 	{
-		if (!strcmp("__text", se->sectname) && !strcmp("__TEXT", se->segname))
+		if (!ft_strcmp("__text", se->sectname) && !ft_strcmp("__TEXT", se->segname))
 			print_memory_64((void*)ofile->ptr + se->offset, se->size, se->addr);
 		se = (void*)se + sizeof(struct section_64);
 		i++;

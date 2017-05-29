@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 08:29:32 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 09:16:55 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -205,7 +205,7 @@ int			main(int argc, char **argv)
 
 	if (argc <= 1)
 	{
-		fprintf(stderr, "Please give me argv");
+		ft_dprintf(2, "Please give me argv");
 		return (EXIT_FAILURE);
 	}
 

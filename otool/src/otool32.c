@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:27:26 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 14:30:21 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 09:18:05 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ void print_section_32(t_ofile *ofile, struct segment_command *sc)
 	se = (void *)sc + sizeof(struct segment_command);
 	while (i < toswap32(ofile, sc->nsects))
 	{
-		if (!strcmp("__text", se->sectname) && !strcmp("__TEXT", se->segname))
+		if (!ft_strcmp("__text", se->sectname) && !ft_strcmp("__TEXT", se->segname))
 			print_memory_32(ofile, se);
 		se = (void*)se + sizeof(struct section);
 		i++;
