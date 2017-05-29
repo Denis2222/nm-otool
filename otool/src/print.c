@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:30:53 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/17 14:31:07 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 13:49:47 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 void	ft_puthex(unsigned char c)
 {
-	char tab[16] = "0123456789abcdef";
+	static char tab[16] = "0123456789abcdef";
 
 	ft_putchar(tab[c / 16]);
 	ft_putchar(tab[c % 16]);
@@ -31,9 +31,9 @@ void	print_line(unsigned char *str, size_t start, size_t max, int isppc)
 		if (isppc)
 		{
 			ft_puthex(str[i]);
-			ft_puthex(str[i+1]);
-			ft_puthex(str[i+2]);
-			ft_puthex(str[i+3]);
+			ft_puthex(str[i + 1]);
+			ft_puthex(str[i + 2]);
+			ft_puthex(str[i + 3]);
 			ft_putchar(' ');
 			i = i + 4;
 		}

@@ -6,38 +6,41 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/01 00:54:42 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 09:17:01 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 16:25:58 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../otool.h"
 
-void otool(t_ofile *ofile, t_argvise *arg)
+void	otool(t_ofile *ofile, t_argvise *arg, int i)
 {
 	struct mach_header *test;
 
-	checktype(ofile);
+	if (!checktype(ofile))
+	{
+		ft_dprintf(2, "%s: %s: The file was not recognized as a valid object file.\n", arg->argv[0], arg->files[i]);
+		return ;
+	}
 	test = (void *)ofile->ptr;
 	if (ofile->is32 == 0 && ofile->isswap == 0)
 		handle_64(ofile);
 	else if (ofile->is32 == 1)
 		handle_32(ofile);
-	(void) arg;
+	(void)arg;
 }
 
-int			main(int argc, char **argv)
+int		main(int argc, char **argv)
 {
 	int			i;
 	t_ofile		*ofile;
 	t_argvise	*arg;
-	arg = new_argvise(argc, argv);
 
+	arg = new_argvise(argc, argv);
 	if (argc <= 1)
 	{
 		ft_dprintf(2, "Please give me argv");
 		return (EXIT_FAILURE);
 	}
-
 	i = 0;
 	while (arg->files[i] != '\0')
 	{
@@ -53,7 +56,7 @@ int			main(int argc, char **argv)
 	return (0);
 }
 
-void otoolfat(t_ofile *ofile, t_argvise *arg)
+void	otoolfat(t_ofile *ofile, t_argvise *arg, int i)
 {
 	struct fat_header	*header;
 	struct fat_arch		*arch;
@@ -61,11 +64,11 @@ void otoolfat(t_ofile *ofile, t_argvise *arg)
 
 	iarch = 0;
 	header = ofile->ptr;
-
 	while (iarch < ofile->isfat)
 	{
 		ft_printf("%s ", ofile->path);
-		arch = (ofile->fatptr + sizeof(struct fat_header) + (sizeof(struct fat_arch) * iarch));
+		arch = (ofile->fatptr + sizeof(struct fat_header) +
+			(sizeof(struct fat_arch) * iarch));
 		if (ofile->isfatswap)
 			ofile->ptr = ofile->fatptr + swap32(arch->offset);
 		else
@@ -75,20 +78,20 @@ void otoolfat(t_ofile *ofile, t_argvise *arg)
 			show_archtype(swap32(arch->cputype));
 		else
 			show_archtype(arch->cputype);
-		otool(ofile, arg);
+		otool(ofile, arg, i);
 		iarch++;
 	}
 }
 
-void ofileheader(t_ofile *ofile, t_argvise *arg, int i)
+void	ofileheader(t_ofile *ofile, t_argvise *arg, int i)
 {
-	(void) i;
+	(void)i;
 	checkfat(ofile);
- 	if (ofile->isfat)
-		otoolfat(ofile, arg);
+	if (ofile->isfat)
+		otoolfat(ofile, arg, i);
 	else
 	{
 		ft_printf("%s", ofile->path);
-		otool(ofile, arg);
+		otool(ofile, arg, i);
 	}
 }

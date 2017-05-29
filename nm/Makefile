@@ -1,8 +1,14 @@
 .PHONY: libft
 
 SRCS = ../src/open.c \
+	   ../src/archtype.c \
+	   ../src/check.c \
+	   ../src/swap.c \
 	   ./src/t_symtab.c \
-	   ./src/nm.c
+	   ./src/t_symtab_64.c \
+	   ./src/t_symtab_32.c \
+	   ./src/nm.c \
+	   ./src/handle.c
 
 NAME = ft_nm
 GCC_FLAG = -Wall -Werror -Wextra

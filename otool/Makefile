@@ -1,6 +1,9 @@
 .PHONY: libft
 
 SRCS = ../src/open.c \
+	   ../src/archtype.c \
+	   ../src/check.c \
+	   ../src/swap.c \
 	   ./src/otool.c \
 	   ./src/otool32.c \
 	   ./src/otool64.c \
