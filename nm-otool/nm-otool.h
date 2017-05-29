@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 13:47:40 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/24 21:50:07 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 06:07:04 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,10 @@ typedef struct	s_ofile
 
 uint32_t 	swap32(uint32_t in);
 uint32_t 	toswap32(t_ofile *ofile, uint32_t var);
+uint64_t 	swap64(uint64_t in);
+uint64_t 	toswap64(t_ofile *ofile, uint64_t var);
 void 		checkfat(t_ofile *ofile);
-void 		checktype(t_ofile *ofile);
+int 		checktype(t_ofile *ofile);
 void 		show_archtype(cpu_type_t arch);
 void 		show_archtypefor(cpu_type_t arch);
 t_ofile		*open_ofile(char *path);
