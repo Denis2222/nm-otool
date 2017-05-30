@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/04/01 00:54:42 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 17:47:00 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 18:39:52 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ int		main(int argc, char **argv)
 	arg = new_argvise(argc, argv);
 	if (argc <= 1)
 	{
-		ft_dprintf(2, "Please give me argv");
+		ft_dprintf(2, "Usage: otool 'mach-o exec'\n");
 		return (EXIT_FAILURE);
 	}
 	i = 0;

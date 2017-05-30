@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 13:49:12 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 10:42:14 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 19:23:41 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ t_ofile	*mmap_ofile(int fd, t_ofile *ofile, char *path)
 		ft_dprintf(2, "mmap fail on %s", path);
 		return (NULL);
 	}
+	ofile->max = ofile->ptr + ofile->buf.st_size;
 	return (ofile);
 }
 

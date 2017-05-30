@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/29 10:40:37 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 10:42:20 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 19:25:48 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,8 @@ int		checktype(t_ofile *ofile)
 {
 	uint32_t	magic;
 
+	if (ofile->ptr > ofile->max)
+		return (0);
 	magic = *(unsigned int *)ofile->ptr;
 	if (magic == MH_MAGIC_64 || magic == MH_CIGAM_64)
 	{

@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/29 10:13:28 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 10:19:27 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/29 19:22:48 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,7 @@ typedef struct		s_ofile
 {
 	void			*fatptr;
 	void			*ptr;
+	void			*max;
 	struct stat		buf;
 	char			*path;
 	unsigned int	isfat;
