@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 13:49:12 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 19:23:41 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/05/30 22:30:51 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,18 +15,13 @@
 t_ofile	*mmap_ofile(int fd, t_ofile *ofile, char *path)
 {
 	if (ofile->buf.st_size < (long long)sizeof(struct mach_header))
-	{
 		ft_dprintf(2, "Invalid file format %s\n", path);
-		return (NULL);
-	}
-	if ((ofile->ptr = mmap(0, ofile->buf.st_size, PROT_READ,
+	else if ((ofile->ptr = mmap(0, ofile->buf.st_size, PROT_READ,
 		MAP_PRIVATE, fd, 0)) == MAP_FAILED)
-	{
 		ft_dprintf(2, "mmap fail on %s", path);
-		return (NULL);
-	}
-	ofile->max = ofile->ptr + ofile->buf.st_size;
-	return (ofile);
+	else if ((ofile->max = ofile->ptr + ofile->buf.st_size))
+		return (ofile);
+	return (NULL);
 }
 
 t_ofile	*open_ofile(char *path)

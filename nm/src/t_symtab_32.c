@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/29 14:52:03 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 16:13:56 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/06/01 07:17:20 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,7 +78,7 @@ char	showtype_32(t_ofile *ofile, struct nlist *symbol)
 		c = 'a';
 	else if ((symbol->n_type & N_TYPE) == N_SECT)
 		c = findtypeofsection_32(symbol->n_sect, ofile);
-	else if ((symbol->n_type & N_TYPE) == N_SECT)
+	else if ((symbol->n_type & N_TYPE) == N_INDR)
 		c = 'i';
 	else if ((symbol->n_type & N_EXT) && !(symbol->n_type & N_TYPE))
 		c = 'a';

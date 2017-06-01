@@ -6,7 +6,7 @@
 /*   By: dmoureu- <dmoureu-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2017/05/17 14:46:35 by dmoureu-          #+#    #+#             */
-/*   Updated: 2017/05/29 19:57:48 by dmoureu-         ###   ########.fr       */
+/*   Updated: 2017/06/01 06:33:47 by dmoureu-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,6 @@
 
 void	nm(t_ofile *ofile, t_argvise *arg, int i, int show)
 {
-	struct mach_header *test;
-
 	if (!checktype(ofile))
 	{
 		ft_dprintf(2,
@@ -23,7 +21,6 @@ void	nm(t_ofile *ofile, t_argvise *arg, int i, int show)
 			arg->argv[0], arg->files[i]);
 		return ;
 	}
-	test = (void *)ofile->ptr;
 	if (arg->nfiles > 1 && show)
 		ft_printf("\n%s:\n", arg->files[i]);
 	if (ofile->is32 == 0 && ofile->isswap == 0)
